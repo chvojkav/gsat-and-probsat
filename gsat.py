@@ -7,7 +7,7 @@ from pysat.formula import CNF
 from pysat.solvers import Solver
 
 
-from .sat import Configuration, FormulaHelper, get_unsatisfied_clauses
+from sat import Configuration, FormulaHelper, get_unsatisfied_clauses
 
 
 def _get_best_flips(formula: CNF,

@@ -1,7 +1,8 @@
-
 import random
 from copy import deepcopy
 from typing import Iterable
+
+from pysat.formula import CNF
 
 clause = list[int]
 clause_list = Iterable[clause]
