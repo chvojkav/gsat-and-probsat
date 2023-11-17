@@ -189,7 +189,7 @@ def main(args):
     parser.add_argument("--cfg-file",
                         required=True,
                         help="File path containing formula configuration.")
-    parser.add_argument('-probability',
+    parser.add_argument('--probability',
                         default=0.4,
                         type=float,
                         help="Probability of random step in each iteration.")
