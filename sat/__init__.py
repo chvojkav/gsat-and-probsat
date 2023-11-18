@@ -1,3 +1,3 @@
-from gsat import *
-from sat import *
-from randsat import *
+from .gsat import *
+from .sat import *
+from .probsat import *
