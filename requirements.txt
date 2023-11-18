@@ -1,0 +1,2 @@
+python-sat  # works only on linux currently
+numpy
