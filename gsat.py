@@ -93,21 +93,17 @@ def gsat(formula: CNF,
 
         if solved:
             break
-
-    # -----------------------------
-    # print results:
-    iteration_count = try_no * max_iters + iter_cnt + 1
-    max_iteration_count = max_tries * max_iters
-
-    print(f"{iteration_count}, {max_iteration_count}, {satisfied_count}, {len(formula.clauses)}",
-          file=sys.stderr)
-    print(best_config.variable_evaluation)
     
     # -----------------------------
     # verify:
     with Solver(bootstrap_with=formula) as solver:
         assert solver.solve(assumptions=config.variable_evaluation) == solved
 
+    # -----------------------------
+    # print results:
+    iteration_count = try_no * max_iters + iter_cnt + 1
+
+    return iteration_count, satisfied_count, best_config.variable_evaluation
 
 def main(args):
     parser = ArgumentParser()
@@ -149,11 +145,21 @@ def main(args):
     if args.seed is not None:
         random.seed(args.seed)
     
-    gsat(CNF(from_file=path),
-         args.probability,
-         args.max_tries,
-         args.max_iters)
+    # ---------------------------
+    # Execution.
+    formula = CNF(from_file=path)
 
+    iteration_count, satisfied_count, variable_evaluation = \
+        gsat(formula,
+             args.probability,
+             args.max_tries,
+             args.max_iters)
+    
+    max_iteration_count = args.max_tries * args.max_iters
+
+    print(f"{iteration_count}, {max_iteration_count}, {satisfied_count}, {len(formula.clauses)}",
+          file=sys.stderr)
+    print(variable_evaluation)
 
 if __name__ == '__main__':
     main(sys.argv)

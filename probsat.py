@@ -112,22 +112,17 @@ def probsat(formula: CNF,
 
         if solved:
             break
-
-    # -----------------------------
-    # print results:
-    flip_count = try_no * max_flips + flip_cnt + 1
-    max_flip_count = max_tries * max_flips
-
-    print(f"{flip_count}, {max_flip_count}, {satisfied_count}, {len(formula.clauses)}",
-          file=sys.stderr)
-    print(best_config.variable_evaluation)
-
-    print(best_config.variable_evaluation)
     
     # -----------------------------
     # verify:
     with Solver(bootstrap_with=formula) as solver:
         assert solver.solve(assumptions=best_config.variable_evaluation) == solved
+
+    # -----------------------------
+    # print results:
+    flip_count = try_no * max_flips + flip_cnt + 1
+    
+    return flip_count, satisfied_count, best_config.variable_evaluation
 
 
 def main(args):
@@ -175,11 +170,22 @@ def main(args):
     if args.seed is not None:
         random.seed(args.seed)
     
-    probsat(CNF(from_file=path),
-            args.max_tries,
-            args.max_flips,
-            args.cm,
-            args.cb)
+    # ---------------------------
+    # Execution.
+    formula = CNF(from_file=path)
+
+    flip_count, satisfied_count, variable_evaluation = \
+        probsat(formula,
+                args.max_tries,
+                args.max_flips,
+                args.cm,
+                args.cb)
+
+    max_flip_count = args.max_tries * args.max_flips
+
+    print(f"{flip_count}, {max_flip_count}, {satisfied_count}, {len(formula.clauses)}",
+          file=sys.stderr)
+    print(variable_evaluation)
 
 
 if __name__ == '__main__':
