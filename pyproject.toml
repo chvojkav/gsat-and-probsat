@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "python_gsat_probsat"
+version = "0.0.1"
+authors = [
+  { name="VChvojka", email="chvojvoj@cvut.cz" },
+]
+description = "GSAT and ProbSAT solvers."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    python-sat,
+    numpy
+]
+
+[project.urls]
+Homepage = "https://github.com/chvojkav/gsat-and-probsat"
+Issues = "https://github.com/chvojkav/gsat-and-probsat/issues"
