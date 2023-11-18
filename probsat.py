@@ -56,7 +56,7 @@ def f(config: Configuration,
     return (make_ ** cm) / (0.00000000000001 + break_ ** cb)
 
 
-def _do_randsat_try(formula: CNF,
+def _do_probsat_try(formula: CNF,
                     max_flips: int,
                     cm: float,
                     cb: float,
@@ -87,7 +87,7 @@ def _do_randsat_try(formula: CNF,
     return best_config, flip_no
  
 
-def randsat(formula: CNF,
+def probsat(formula: CNF,
             max_tries: int, 
             max_flips: int,
             cm: float,
@@ -97,7 +97,7 @@ def randsat(formula: CNF,
     best_satisfied_count = 0
     solved = False
     for try_no in range(max_tries):
-        config, flip_cnt = _do_randsat_try(formula,
+        config, flip_cnt = _do_probsat_try(formula,
                                            max_flips,
                                            cm,
                                            cb,
@@ -175,7 +175,7 @@ def main(args):
     if args.seed is not None:
         random.seed(args.seed)
     
-    randsat(CNF(from_file=path),
+    probsat(CNF(from_file=path),
             args.max_tries,
             args.max_flips,
             args.cm,
