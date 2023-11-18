@@ -2,7 +2,7 @@
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
-[project]
+[python_gsat_probsat]
 name = "python_gsat_probsat"
 version = "0.0.1"
 authors = [
