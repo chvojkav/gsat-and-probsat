@@ -8,14 +8,14 @@ from pysat.formula import CNF
 from pysat.solvers import Solver
 
 
-from .sat import Configuration, FormulaHelper, get_unsatisfied_clauses, clause_list
+from sat import Configuration, FormulaHelper, get_unsatisfied_clauses, clause_list, enumerated_clause_list
 
 
-def _get_formula_evals(formula: clause_list,
+def _get_formula_evals(formula: enumerated_clause_list,
                        config: Configuration) -> list[bool]:
     clause_evals: list[bool] = []
     for clause in formula:
-        for variable in clause:
+        for variable in clause[0]:
             if config.evaluate_variable(variable):
                 clause_evals.append(True)
                 break
@@ -25,7 +25,7 @@ def _get_formula_evals(formula: clause_list,
     return clause_evals
 
 
-def satisfaction_changes_on_flip(formula: clause_list,
+def satisfaction_changes_on_flip(formula: enumerated_clause_list,
                                  config: Configuration,
                                  variable: int) -> tuple[int, int]:
     old_clause_evals = _get_formula_evals(formula, config)
@@ -116,7 +116,7 @@ def probsat(formula: CNF,
     # -----------------------------
     # verify:
     with Solver(bootstrap_with=formula) as solver:
-        assert solver.solve(assumptions=best_config.variable_evaluation) == solved
+        assert solver.solve(assumptions=best_config.get_evaluation()) == solved
 
     # -----------------------------
     # print results:
