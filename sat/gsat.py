@@ -109,14 +109,12 @@ class Gsat:
         for clause, clause_index in self.helper[variable_name]:
             if self.counts_of_satisfied_literals[clause_index] == 0:
                 change += 1
-                continue
-
-            new_sat_cnt = 0
-            for variable in clause:
-                new_sat_cnt += self.working_config.evaluate_variable(variable)
-            
-            if new_sat_cnt == 0:
-                change -= 1
+            elif self.counts_of_satisfied_literals[clause_index] == 1:
+                for variable in clause:
+                    if abs(variable) == variable_name \
+                            and self.working_config.evaluate_variable(variable):
+                        change -= 1
+                        break
         
         return change
 
