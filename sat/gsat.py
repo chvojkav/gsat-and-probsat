@@ -94,13 +94,11 @@ class Gsat:
 
         # Recalculate satisfied literals counts.
         for clause, clause_index in self.helper[variable_name]:
+            new_sat_cnt = 0
             for variable in clause:
-                if abs(variable) == variable_name:
-                    if self.working_config.evaluate_variable(variable):
-                        self.counts_of_satisfied_literals[clause_index] += 1
-                    else:
-                        self.counts_of_satisfied_literals[clause_index] -= 1
-                    break
+                new_sat_cnt += self.working_config.evaluate_variable(variable)
+                    
+            self.counts_of_satisfied_literals[clause_index] = new_sat_cnt
     
     def sat_change_if_fliped(self, variable_name: int) -> int:
         # Returns hypotetical change in number of satisfied clauses.
