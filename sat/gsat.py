@@ -100,21 +100,22 @@ class Gsat:
                         self.counts_of_satisfied_literals[clause_index] += 1
                     else:
                         self.counts_of_satisfied_literals[clause_index] -= 1
+                    break
     
     def sat_change_if_fliped(self, variable_name: int) -> int:
         # Returns hypotetical change in number of satisfied clauses.
         # Positive means more would be satisfied. negative means less would be satisfied.
         change = 0
         for clause, clause_index in self.helper[variable_name]:
+            if self.counts_of_satisfied_literals[clause_index] == 0:
+                change += 1
+                continue
+
             new_sat_cnt = 0
             for variable in clause:
                 new_sat_cnt += self.working_config.evaluate_variable(variable)
             
-            if self.counts_of_satisfied_literals[clause_index] == 0 \
-                    and new_sat_cnt != 0:
-                change += 1
-            elif self.counts_of_satisfied_literals[clause_index] != 0 \
-                    and new_sat_cnt == 0:
+            if new_sat_cnt == 0:
                 change -= 1
         
         return change
