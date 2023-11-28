@@ -7,7 +7,7 @@ from pysat.formula import CNF
 from pysat.solvers import Solver
 
 
-from .sat import Configuration, FormulaHelper, get_unsatisfied_clauses
+from sat import Configuration, FormulaHelper, get_unsatisfied_clauses
 
 
 def _get_best_flips(formula: CNF,
@@ -31,79 +31,85 @@ def _get_best_flips(formula: CNF,
     
 
 
-def _do_gsat_try(formula: CNF,
+
+
+
+class Gsat:
+    def __init__(self,
+                 formula: CNF,
                  probability: float,
-                 max_iters: int,
-                 helper: FormulaHelper):
-    config = Configuration(formula.nv)
-    config.set_random()
-    best_config = Configuration(formula.nv)
-    best_satisfied_count = 0
-    unsatisfied_clauses = None
-    for iter_no in range(max_iters):
-        unsatisfied_clauses = get_unsatisfied_clauses(formula, config)
-        satisfied_count = len(formula.clauses) - len(unsatisfied_clauses)
-
-        if satisfied_count >= best_satisfied_count:
-            best_satisfied_count = satisfied_count
-            best_config.from_config(config)
-
-        if len(unsatisfied_clauses) == 0:
-            break
-
-        if random.random() <= probability:
-            # randomly pick an unsatisfied clause in F. 
-            clausule = random.choice(unsatisfied_clauses)
-            # randomly pick a variable in that clause.
-            variable = random.choice(clausule)
-            # flip the truth assignment of the chosen variable.
-            config.flip_variable(variable)
-        else:
-            # randomly pick any variable in T
-            # whose value flip results in greatest
-            # decrease (can be 0 or negative)
-            # in the number of unsatisfied clauses.
-            best_flips = _get_best_flips(formula, config, helper)
-            variable = random.choice(best_flips)
-            config.flip_variable(variable)
+                 max_tries: int,
+                 max_iters: int) -> None:
+        self.formula = formula
+        self.clauses_cnt = len(self.formula.clauses)
+        self.probability = probability
+        self.max_tries = max_tries
+        self.max_iters = max_iters
+        self.helper = FormulaHelper(formula)
+        self.best_config = Configuration(formula.nv)
+        self.best_satisfied_count = 0
+        self.solved = False
+        self.working_config = Configuration(formula.nv)
     
-    return best_config, iter_no
+    def run(self) -> tuple[int, int, list[int]]:
+        for try_no in range(self.max_tries):
+            iter_cnt = self._do_gsat_try()
+
+            if self.solved:
+                break
+            
+        # -----------------------------
+        # verify:
+        with Solver(bootstrap_with=self.formula) as solver:
+            assert solver.solve(assumptions=self.best_config.variable_evaluation) == self.solved
+
+        # -----------------------------
+        # print results:
+        iteration_count = try_no * self.max_iters + iter_cnt + 1
+
+        return iteration_count, self.best_satisfied_count, self.best_config.variable_evaluation
+
+    def _do_gsat_try(self) -> tuple[Configuration, int]:
+        self.working_config.set_random()
+        unsatisfied_clauses = None
+        for iter_no in range(self.max_iters):
+            unsatisfied_clauses = get_unsatisfied_clauses(self.formula, self.working_config)
+            satisfied_count = self.clauses_cnt - len(unsatisfied_clauses)
+
+            if satisfied_count >= self.best_satisfied_count:
+                self.best_satisfied_count = satisfied_count
+                self.best_config.from_config(self.working_config)
+
+            if len(unsatisfied_clauses) == 0:
+                self.solved = True
+                break
+
+            if random.random() <= self.probability:
+                # randomly pick an unsatisfied clause in F. 
+                clausule = random.choice(unsatisfied_clauses)
+                # randomly pick a variable in that clause.
+                variable = random.choice(clausule)
+                # flip the truth assignment of the chosen variable.
+                self.working_config.flip_variable(variable)
+            else:
+                # randomly pick any variable in T
+                # whose value flip results in greatest
+                # decrease (can be 0 or negative)
+                # in the number of unsatisfied clauses.
+                best_flips = _get_best_flips(self.formula, self.working_config, self.helper)
+                variable = random.choice(best_flips)
+                self.working_config.flip_variable(variable)
+        
+        return iter_no
 
 
 def gsat(formula: CNF,
          probability: float,
          max_tries: int,
          max_iters: int):
-    helper = FormulaHelper(formula)
-    best_config = Configuration(formula.nv)
-    best_satisfied_count = 0
-    solved = False
-    for try_no in range(max_tries):
-        config, iter_cnt = _do_gsat_try(formula,
-                                        probability,
-                                        max_iters,
-                                        helper)
-
-        unsatisfied_clauses = get_unsatisfied_clauses(formula, config)
-        solved = len(unsatisfied_clauses) == 0
-        satisfied_count = len(formula.clauses) - len(unsatisfied_clauses)
-        if satisfied_count >= best_satisfied_count:
-            best_satisfied_count = satisfied_count
-            best_config.from_config(config)
-
-        if solved:
-            break
+    solver = Gsat(formula, probability, max_tries, max_iters)
+    return solver.run()
     
-    # -----------------------------
-    # verify:
-    with Solver(bootstrap_with=formula) as solver:
-        assert solver.solve(assumptions=config.variable_evaluation) == solved
-
-    # -----------------------------
-    # print results:
-    iteration_count = try_no * max_iters + iter_cnt + 1
-
-    return iteration_count, satisfied_count, best_config.variable_evaluation
 
 def main(args):
     parser = ArgumentParser()
